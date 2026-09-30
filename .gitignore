@@ -1,0 +1,11 @@
+/target/
+/model-artifacts/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.iml
+
+# OS/log noise
+.DS_Store
+*.log

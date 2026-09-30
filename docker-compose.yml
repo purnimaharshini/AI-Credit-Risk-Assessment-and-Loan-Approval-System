@@ -1,0 +1,45 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: creditrisk-mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-credit_risk}
+      MYSQL_USER: ${MYSQL_APP_USER:-creditrisk}
+      MYSQL_PASSWORD: ${MYSQL_APP_PASSWORD:-creditrisk}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    ports:
+      - "${MYSQL_HOST_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    container_name: creditrisk-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_URL: ${COMPOSE_APP_DB_URL:-jdbc:mysql://mysql:3306/credit_risk?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      DB_USERNAME: ${DB_USERNAME:-creditrisk}
+      DB_PASSWORD: ${DB_PASSWORD:-creditrisk}
+      JWT_SECRET: compose-dev-secret-123456789012345678901234567890
+      MODEL_ARTIFACTS_PATH: /app/model-artifacts
+      DATASET_BOOTSTRAP_ENABLED: ${DATASET_BOOTSTRAP_ENABLED:-true}
+      DATASET_BOOTSTRAP_SOURCE_PATH: ${DATASET_BOOTSTRAP_SOURCE_PATH:-/app/data/lending_club_synthetic.csv}
+      DATASET_BOOTSTRAP_SOURCE_NAME: ${DATASET_BOOTSTRAP_SOURCE_NAME:-lending-club-synthetic}
+      DATASET_BOOTSTRAP_GENERATE_IF_MISSING: ${DATASET_BOOTSTRAP_GENERATE_IF_MISSING:-true}
+      DATASET_BOOTSTRAP_ROWS: ${DATASET_BOOTSTRAP_ROWS:-5000}
+      DATASET_BOOTSTRAP_RANDOM_SEED: ${DATASET_BOOTSTRAP_RANDOM_SEED:-42}
+      DATASET_BOOTSTRAP_SKIP_IF_ALREADY_IMPORTED: ${DATASET_BOOTSTRAP_SKIP_IF_ALREADY_IMPORTED:-true}
+      DATASET_BOOTSTRAP_FAIL_ON_ERROR: ${DATASET_BOOTSTRAP_FAIL_ON_ERROR:-false}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./model-artifacts:/app/model-artifacts
+      - ./data:/app/data
+volumes:
+  mysql_data:
