@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:creditrisk;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+app:
+  security:
+    jwt:
+      secret: test-secret-key-123456789012345678901234567890
+      issuer: test-issuer
+      access-token-minutes: 60
+      refresh-token-days: 7
+  model:
+    artifacts-path: ./target/test-artifacts
+  admin:
+    seed-admin-email: admin@test.local
+    seed-admin-password: Admin@123
+  dataset:
+    bootstrap:
+      enabled: false
